@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { processDocument } from "@/lib/documents/process-document";
 import { createClient } from "@/lib/supabase/server";
 
 const maximumFileSize = 6 * 1024 * 1024;
@@ -185,11 +186,28 @@ export async function uploadDocument(
     );
   }
 
+  const processingResult = await processDocument({
+    documentId,
+    projectId: project.id,
+    organizationId: project.organization_id,
+    storagePath,
+  });
+
   revalidatePath(`/projects/${projectId}/documents`);
+
+  if (!processingResult.success) {
+    redirect(
+      `/projects/${projectId}/documents?error=${encodeURIComponent(
+        `The PDF was uploaded, but text extraction failed: ${
+          processingResult.error ?? "Unknown processing error."
+        }`,
+      )}`,
+    );
+  }
 
   redirect(
     `/projects/${projectId}/documents?message=${encodeURIComponent(
-      `${fileValue.name} uploaded successfully.`,
+      `${fileValue.name} uploaded and processed successfully.`,
     )}`,
   );
 }

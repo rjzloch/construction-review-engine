@@ -118,8 +118,8 @@ export default async function DocumentsPage({
           </h1>
 
           <p className="mt-3 text-slate-600">
-            Upload private project PDFs. Text extraction and AI
-            processing will be added in the next steps.
+            Upload private project PDFs. Text extraction and AI processing
+            will be added in the next steps.
           </p>
         </header>
 
@@ -145,10 +145,7 @@ export default async function DocumentsPage({
               PDF only. Maximum file size: 6 MB.
             </p>
 
-            <form
-              action={uploadAction}
-              className="mt-6 space-y-5"
-            >
+            <form action={uploadAction} className="mt-6 space-y-5">
               <div>
                 <label
                   htmlFor="file"
@@ -184,23 +181,17 @@ export default async function DocumentsPage({
                 >
                   <option value="contract">Contract</option>
                   <option value="drawing">Drawing</option>
-                  <option value="specification">
-                    Specification
-                  </option>
+                  <option value="specification">Specification</option>
                   <option value="proposal">Proposal</option>
                   <option value="field_order">Field Order</option>
                   <option value="change_order">Change Order</option>
                   <option value="rfi">RFI</option>
                   <option value="submittal">Submittal</option>
-                  <option value="meeting_minutes">
-                    Meeting Minutes
-                  </option>
+                  <option value="meeting_minutes">Meeting Minutes</option>
                   <option value="schedule">Schedule</option>
                   <option value="estimate">Estimate</option>
                   <option value="invoice">Invoice</option>
-                  <option value="correspondence">
-                    Correspondence
-                  </option>
+                  <option value="correspondence">Correspondence</option>
                   <option value="report">Report</option>
                   <option value="photo">Photo</option>
                   <option value="other">Other</option>
@@ -280,8 +271,7 @@ export default async function DocumentsPage({
                 </h3>
 
                 <p className="mt-2 text-sm text-slate-600">
-                  Upload the first PDF to begin building the project
-                  record.
+                  Upload the first PDF to begin building the project record.
                 </p>
               </div>
             )}
@@ -296,7 +286,12 @@ export default async function DocumentsPage({
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <h3 className="font-bold text-slate-950">
-                          {document.file_name}
+                          <Link
+                            href={`/projects/${project.id}/documents/${document.id}`}
+                            className="hover:underline"
+                          >
+                            {document.file_name}
+                          </Link>
                         </h3>
 
                         <p className="mt-1 text-sm text-slate-600">
@@ -308,9 +303,7 @@ export default async function DocumentsPage({
                       </div>
 
                       <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                        {formatLabel(
-                          document.processing_status,
-                        )}
+                        {formatLabel(document.processing_status)}
                       </span>
                     </div>
 
@@ -346,6 +339,13 @@ export default async function DocumentsPage({
                         </span>
                       )}
                     </div>
+
+                    <Link
+                      href={`/projects/${project.id}/documents/${document.id}`}
+                      className="mt-5 inline-flex rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                    >
+                      View document
+                    </Link>
                   </article>
                 ))}
               </div>
