@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import DocumentQuestionAnswering from "@/components/document-question-answering"
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -287,6 +288,11 @@ export default async function DocumentDetailPage({
             )}
           </div>
         </header>
+        <DocumentQuestionAnswering
+  projectId={project.id}
+  documentId={document.id}
+  processingStatus={document.processing_status}
+/>
 
         {(previewError || downloadError) && (
           <div className="mt-6 rounded-lg bg-red-100 p-4 text-sm text-red-800">
