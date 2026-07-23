@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import DocumentQuestionAnswering from "@/components/document-question-answering"
 
+import DocumentAiReview from "@/components/document-ai-review";
+import DocumentMetadataPanel from "@/components/document-metadata";
+import DocumentQuestionAnswering from "@/components/document-question-answering";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -95,7 +97,6 @@ export default async function DocumentDetailPage({
 }: DocumentDetailPageProps) {
   const { id, documentId } = await params;
   const resolvedSearchParams = await searchParams;
-
   const searchQuery = resolvedSearchParams.q?.trim() ?? "";
 
   const supabase = await createClient();
@@ -148,6 +149,8 @@ export default async function DocumentDetailPage({
     { data: previewData, error: previewError },
     { data: downloadData, error: downloadError },
     { data: documentPages, error: pagesError },
+    { data: latestReview, error: reviewError },
+    { data: latestMetadata, error: metadataError },
   ] = await Promise.all([
     supabase.storage
       .from("project-documents")
@@ -164,12 +167,29 @@ export default async function DocumentDetailPage({
       .select("id, page_number, page_text")
       .eq("document_id", document.id)
       .order("page_number", { ascending: true }),
+
+    supabase
+      .from("document_reviews")
+      .select("*")
+      .eq("document_id", document.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+
+    supabase
+      .from("document_metadata")
+      .select("*")
+      .eq("document_id", document.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const previewUrl = previewData?.signedUrl;
   const downloadUrl = downloadData?.signedUrl;
 
   const pageCount = Number(document.page_count ?? 0);
+
   const selectedPage = getSelectedPage(
     resolvedSearchParams.page,
     pageCount,
@@ -288,11 +308,26 @@ export default async function DocumentDetailPage({
             )}
           </div>
         </header>
+
         <DocumentQuestionAnswering
-  projectId={project.id}
-  documentId={document.id}
-  processingStatus={document.processing_status}
-/>
+          projectId={project.id}
+          documentId={document.id}
+          processingStatus={document.processing_status}
+        />
+
+        <DocumentAiReview
+          projectId={project.id}
+          documentId={document.id}
+          processingStatus={document.processing_status}
+          initialReview={latestReview}
+        />
+
+        <DocumentMetadataPanel
+          projectId={project.id}
+          documentId={document.id}
+          processingStatus={document.processing_status}
+          initialMetadata={latestMetadata}
+        />
 
         {(previewError || downloadError) && (
           <div className="mt-6 rounded-lg bg-red-100 p-4 text-sm text-red-800">
@@ -305,6 +340,20 @@ export default async function DocumentDetailPage({
           <div className="mt-6 rounded-lg bg-red-100 p-4 text-sm text-red-800">
             The extracted document text could not be loaded.{" "}
             {pagesError.message}
+          </div>
+        )}
+
+        {reviewError && (
+          <div className="mt-6 rounded-lg bg-red-100 p-4 text-sm text-red-800">
+            The latest AI review could not be loaded.{" "}
+            {reviewError.message}
+          </div>
+        )}
+
+        {metadataError && (
+          <div className="mt-6 rounded-lg bg-red-100 p-4 text-sm text-red-800">
+            The latest document metadata could not be loaded.{" "}
+            {metadataError.message}
           </div>
         )}
 
@@ -499,8 +548,8 @@ export default async function DocumentDetailPage({
           </h2>
 
           <p className="mt-2 text-sm text-slate-600">
-            Compare extracted text against the original PDF before relying on
-            it for a project decision.
+            Compare extracted text against the original PDF before relying
+            on it for a project decision.
           </p>
 
           <pre className="mt-5 max-h-[600px] overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950 p-5 text-sm leading-7 text-slate-100">
